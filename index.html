@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>وقفة</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="وقفة">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EDF0EC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;600&family=Amiri&display=swap">
+<style>
+/* reset that the artifact viewer used to supply */
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Layout: one phone column. Today = "now" card + five category tiles; each tile opens a time-ordered list; journey mode lives behind the fifth tile. */
+:root{
+  --bg:#EDF0EC; --surface:#F8FAF7; --line:#D5DCD5; --fg:#1C2A2B; --muted:#5D6D6B;
+  --accent:#1E6E68; --accent-soft:#D6E8E4; --lamp:#A8681A; --lamp-soft:#F1E3CC;
+  --ex:#7A4FA0; --ex-soft:#EDE3F5;
+  --done:#2F7A4F; --part:#A8681A; --miss:#8A5A5A; --on-chip:#FFFFFF;
+  --f-display:"Reem Kufi","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-ui:"IBM Plex Sans Arabic",system-ui,-apple-system,"Geeza Pro",sans-serif;
+  --f-text:"Amiri","IBM Plex Sans Arabic",serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1617;--surface:#152123;--line:#26383A;--fg:#E3EBE9;--muted:#93A6A3;
+  --accent:#5DB3A9;--accent-soft:#1D3836;--lamp:#D9A55A;--lamp-soft:#3A2D19;--ex:#B994DB;--ex-soft:#2C2238;
+  --done:#6BC08E;--part:#D9A55A;--miss:#C99494;--on-chip:#0E1617;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1617;--surface:#152123;--line:#26383A;--fg:#E3EBE9;--muted:#93A6A3;
+  --accent:#5DB3A9;--accent-soft:#1D3836;--lamp:#D9A55A;--lamp-soft:#3A2D19;--ex:#B994DB;--ex-soft:#2C2238;
+  --done:#6BC08E;--part:#D9A55A;--miss:#C99494;--on-chip:#0E1617;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.6;direction:rtl;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-block:18px 110px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand h1{font-family:var(--f-display);font-weight:600;font-size:30px;color:var(--accent)}
+.dates{text-align:left;color:var(--muted);font-size:13px;line-height:1.4}
+.dates b{display:block;color:var(--fg);font-weight:600;font-size:15px}
+.subhead{display:flex;align-items:center;gap:10px}
+.subhead h1{font-family:var(--f-display);font-weight:600;font-size:24px;color:var(--accent)}
+.back{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
+.note{color:var(--muted);font-size:13px;margin:0}
+.link{background:none;border:0;color:var(--accent);font-weight:600;padding:4px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h2{font-family:var(--f-display);font-weight:500;font-size:19px}
+.card.review{background:var(--accent-soft);border-color:transparent}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.step .k{font-size:12px;color:var(--lamp);font-weight:600;white-space:nowrap}
+/* example marking */
+.ex{border:1.5px dashed var(--ex)!important;background:var(--ex-soft)!important}
+.exb{display:inline-block;font-size:11px;font-weight:600;color:var(--ex);border:1px solid var(--ex);border-radius:999px;padding:0 8px;margin-inline-start:6px;vertical-align:middle;background:var(--surface)}
+.viewing{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--lamp-soft);padding:10px 14px;border-radius:var(--r);font-size:14px}
+/* now */
+.now{border:1.5px solid var(--accent)}
+.now .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.now .top h2{color:var(--accent)}
+.now .next{font-size:14px;color:var(--muted)}
+.now .next b{color:var(--fg);font-variant-numeric:tabular-nums}
+.times{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;text-align:center;font-size:12px;color:var(--muted)}
+.times div{background:var(--bg);border-radius:8px;padding:4px 0}
+.times b{display:block;color:var(--fg);font-size:13px;font-variant-numeric:tabular-nums}
+.times .cur{background:var(--accent-soft);color:var(--accent)}
+.ready{background:var(--lamp-soft);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.ready .k{font-size:12px;font-weight:600;color:var(--lamp)}
+.mine{background:var(--lamp-soft);border-radius:12px;padding:10px 12px;font-size:14px}
+.anytime{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+/* tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;text-align:right;display:flex;flex-direction:column;gap:6px;min-height:96px}
+.tile b{font-family:var(--f-display);font-weight:500;font-size:18px}
+.tile span{color:var(--muted);font-size:13px}
+.tile.journey{grid-column:1/-1;background:var(--accent-soft);border-color:transparent;min-height:auto}
+.tile.journey b{color:var(--accent)}
+.progress{display:flex;flex-direction:column;gap:8px}
+.progress .row{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);gap:8px;flex-wrap:wrap}
+.bar{display:flex;gap:3px;height:8px}
+.bar span{flex:1;border-radius:3px;background:var(--line)}
+.bar .done{background:var(--done)}.bar .part{background:var(--part)}.bar .miss{background:var(--miss);opacity:.55}
+.sec{font-family:var(--f-display);font-weight:500;font-size:17px;color:var(--muted);margin-top:4px}
+/* deeds */
+.deeds{display:flex;flex-direction:column;gap:10px}
+.deed{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.deed[data-st="done"]{border-inline-start:4px solid var(--done)}
+.deed[data-st="part"]{border-inline-start:4px solid var(--part)}
+.deed[data-st="miss"]{border-inline-start:4px solid var(--miss)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dh h3{font-size:16px;font-weight:600}
+.dh small{color:var(--muted);font-size:12px;font-weight:400;margin-inline-start:6px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button,.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;min-height:34px}
+.seg button[aria-pressed="true"]{color:var(--on-chip);border-color:transparent}
+.seg button[data-v="done"][aria-pressed="true"]{background:var(--done)}
+.seg button[data-v="part"][aria-pressed="true"]{background:var(--part)}
+.seg button[data-v="miss"][aria-pressed="true"]{background:var(--miss)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip.sunnah{border-style:dashed}
+.q{display:flex;flex-direction:column;gap:6px}
+.q > span{font-weight:600;font-size:14px}
+.counter{display:flex;align-items:center;gap:10px}
+.counter button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:20px;line-height:1}
+.counter output{min-width:56px;text-align:center;font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.counter .goal{color:var(--muted);font-size:13px}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inline input,.inp{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 10px}
+.inline input[type=number]{flex:0 0 90px}
+.sel{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 10px;min-width:96px;min-height:38px}
+.reflect{align-self:flex-start;background:none;border:0;color:var(--lamp);font-weight:600;font-size:13px;padding:2px 0;display:flex;gap:6px;align-items:center}
+.reflect .dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--lamp)}
+.reflect.has .dot{background:var(--lamp)}
+.btn{border:0;border-radius:12px;padding:10px 16px;background:var(--accent);color:var(--surface);font-weight:600;min-height:42px}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.btn.small{min-height:34px;padding:5px 12px;font-size:13px}
+.list{margin:0;padding:0 18px 0 0;display:flex;flex-direction:column;gap:2px}
+.days{display:flex;flex-direction:column;gap:8px}
+.day{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;text-align:right;width:100%}
+.day .bar{grid-column:1/-1}
+.day span.c{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;min-height:64px;resize:vertical}
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+/* journey */
+.types{display:flex;flex-direction:column;gap:10px}
+.type{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:right;display:flex;flex-direction:column;gap:4px;width:100%}
+.type[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.type b{font-family:var(--f-display);font-weight:500;font-size:19px;color:var(--accent)}
+.stat{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px}
+.stat span:nth-child(even){font-weight:600;font-variant-numeric:tabular-nums;text-align:left}
+.prog{display:flex;flex-direction:column}
+.prog div{display:grid;grid-template-columns:1fr;padding:7px 10px;border-radius:10px}
+.prog div.cur{background:var(--accent-soft)}
+.prog b{font-weight:600;font-size:14px}
+.prog small{color:var(--muted);font-size:12px}
+.assign{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:6px 8px;align-items:center}
+.assign > span{font-size:14px;font-weight:500}
+.prev{background:var(--bg);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--muted)}
+.ppl{display:flex;flex-direction:column;gap:6px}
+.ppl div{display:flex;justify-content:space-between;gap:8px;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.ppl .ph{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;user-select:all}
+.ltr{direction:ltr;unicode-bidi:isolate}
+/* tab bar */
+nav.tabs{position:fixed;inset:auto 0 0 0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;
+  padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:20}
+nav.tabs div{display:flex;width:100%;max-width:560px}
+nav.tabs button{flex:1;background:none;border:0;padding:8px 4px;color:var(--muted);font-size:13px;font-weight:600;border-radius:10px}
+nav.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,20,20,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:600px;max-height:88%;overflow:auto;border-radius:20px 20px 0 0;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet h2{font-family:var(--f-display);font-weight:500;font-size:21px;color:var(--lamp)}
+.sheet .acts{display:flex;gap:8px;position:sticky;bottom:-20px;background:var(--surface);padding-block:10px}
+.ayah{font-family:var(--f-text);font-size:17px;color:var(--muted);line-height:1.9;margin:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:14px;z-index:40}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<nav class="tabs" aria-label="التنقل"><div>
+  <button id="tab-today" data-tab="today" aria-current="page">اليوم</button>
+  <button id="tab-log" data-tab="log">السجل</button>
+  <button id="tab-more" data-tab="more">المزيد</button>
+</div></nav>
+
+<script>
+(()=>{
+const KEY='waqfa.v1';
+/* ---------- reflection questions per deed type ---------- */
+const HEART=['كان غائبًا غالبًا','حاضرًا أحيانًا','حاضرًا غالبًا'];
+const T={
+ prayer:[{id:'heart',q:'حضور القلب',o:HEART},{id:'khushu',q:'الخشوع في الركوع والسجود',o:['شغلني غيره','حاولت','وجدته']},
+  {id:'understand',q:'فهم ما أقرأ وأسمع',o:['لم أنتبه','فهمت بعضه','تدبّرت']},{id:'early',q:'التبكير',o:['بعد الإقامة','مع الإقامة','قبل الأذان أو معه']}],
+ nafl:[{id:'heart',q:'حضور القلب',o:HEART},{id:'calm',q:'الطمأنينة',o:['استعجلت','متوسطة','اطمأننت']}],
+ qiyam:[{id:'heart',q:'حضور القلب',o:HEART},{id:'dua',q:'الدعاء',o:['دعوت سريعًا','دعوت بحضور','دعوت بتضرّع']}],
+ dhikr:[{id:'meaning',q:'الحضور مع المعنى',o:['باللسان فقط','أحيانًا','غالبًا']},{id:'pace',q:'التأنّي',o:['بسرعة','متوسط','بتأنٍّ']}],
+ quran:[{id:'tadabbur',q:'التدبّر',o:['قراءة فقط','وقفت عند بعض الآيات','تدبّرت']},{id:'tajweed',q:'التجويد',o:['لم أنتبه له','انتبهت أحيانًا','اعتنيت به']}],
+ dawah:[{id:'intent',q:'تذكّر النية قبل الكلام',o:['نسيت','أحيانًا','غالبًا']},{id:'gentle',q:'الرفق واللين',o:['احتجت أكثر','متوسط','كان حاضرًا']},
+  {id:'listen',q:'حسن الاستماع',o:['تكلمت أكثر','متوازن','استمعت جيدًا']}],
+ learning:[{id:'focus',q:'التركيز',o:['تشتّت','متوسط','ركّزت']},{id:'understand',q:'الفهم',o:['قليل','بعضه','واضح']}],
+ service:[{id:'intent',q:'تذكّر النية لله',o:['نسيت','أحيانًا','تذكّرتها']},{id:'hide',q:'إخفاء العمل',o:['حكيته لغيري','لم أقصد شيئًا','أخفيته']},
+  {id:'joy',q:'طيب النفس وأنا بخدم',o:['تثاقلت','عادي','بفرح']}]
+};
+/* ---------- deeds: ordered by time inside each category ---------- */
+const CATS=[['ibadat','العبادات','الصلوات والنوافل والذكر والقرآن'],['ilm','التعليم والتعلّم','التعليم الانفرادي والحلقات'],['dawah','الدعوة','الدعوة الفردية'],['khidma','الخدمة','خدمت مين النهارده']];
+const DEFAULT_DEEDS=[
+ {id:'qiyam',name:'قيام الليل والوتر',kind:'rakaat',t:'qiyam',cat:'ibadat',goal:11,subs:['صلاة','قرآن','دعاء','استغفار']},
+ {id:'fajr',name:'الفجر',kind:'prayer',t:'prayer',cat:'ibadat',sunnah:[['qf','سنة الفجر',2,'before']]},
+ {id:'am',name:'أذكار الصباح',kind:'check',t:'dhikr',cat:'ibadat'},
+ {id:'duha',name:'الضحى',kind:'rakaat',t:'nafl',cat:'ibadat',goal:12},
+ {id:'dhuhr',name:'الظهر',kind:'prayer',t:'prayer',cat:'ibadat',sunnah:[['qd','السنة القبلية',4,'before'],['bd','السنة البعدية',4,'after']]},
+ {id:'asr',name:'العصر',kind:'prayer',t:'prayer',cat:'ibadat'},
+ {id:'pm',name:'أذكار المساء',kind:'check',t:'dhikr',cat:'ibadat'},
+ {id:'maghrib',name:'المغرب',kind:'prayer',t:'prayer',cat:'ibadat',sunnah:[['bm','سنة المغرب',2,'after']]},
+ {id:'isha',name:'العشاء',kind:'prayer',t:'prayer',cat:'ibadat',sunnah:[['bi','سنة العشاء',2,'after']]},
+ {id:'quran',name:'ورد القرآن',kind:'quran',t:'quran',cat:'ibadat'},
+ {id:'rawatib',name:'السنن الرواتب',kind:'parts',t:'nafl',cat:'ibadat',hidden:true,parts:[['qf','قبل الفجر',2],['qd','قبل الظهر',4],['bd','بعد الظهر',4],['bm','بعد المغرب',2],['bi','بعد العشاء',2]]},
+ {id:'taleem',name:'التعليم الانفرادي',kind:'learning',t:'learning',cat:'ilm'},
+ {id:'halaqa',name:'حلقة علم أو درس',kind:'check',t:'learning',cat:'ilm'},
+ {id:'dawah',name:'الدعوة الفردية',kind:'counter',goal:25,unit:'شخص',t:'dawah',cat:'dawah'},
+ {id:'khidma',name:'الخدمة',kind:'service',t:'service',cat:'khidma'}
+];
+const ST={done:'تم',part:'جزئي',miss:'لم يتم'};
+const ST_PRAYER={done:'في وقتها',part:'قضاء',miss:'فاتتني'};
+const FRAC=[[1,'ربع'],[2,'نص'],[3,'ثلاثة أرباع'],[4,'الجزء كامل']];
+const WHOM=[['ahl','أهلي'],['friend','أصحابي'],['street','حد في الشارع'],['masjid','الجماعة أو المسجد'],['other','غير ذلك']];
+const DISCLAIMER='ما يظهر هنا وصفٌ لما سجّلته أنت، وليس حكمًا على الإخلاص أو القبول؛ فذلك إلى الله وحده.';
+/* ---------- journey ---------- */
+const JTYPES={
+ d3:{label:'خروج ٣ أيام',days:3,stageKind:'مسجد',stages:['المسجد'],hint:'مسجد واحد غالبًا، وأعمال اليوم والليلة، والمشورة.'},
+ d40:{label:'خروج ٤٠ يوم',days:40,stageKind:'محافظة',stages:['المحافظة الأولى','المحافظة الثانية'],hint:'محافظتين، ٢٠ يوم في كل واحدة، ومسجد كل ٣ أيام.'},
+ m4:{label:'خروج ٤ شهور',days:120,stageKind:'تشكيل',stages:['التشكيل الأول','التشكيل الثاني','التشكيل الثالث','التشكيل الرابع'],hint:'٤ تشكيلات، كل تشكيل حوالي شهر، ومعاه فترة في المركز.'}
+};
+const STAGE_KINDS=['محافظة','تشكيل','المركز','مسجد'];
+const BAYANAT=[['fajr_b','بيان الفجر','fajr'],['hadith','حديثين الظهر','dhuhr'],['asr_b','بيان العصر','asr'],['ilan','الإعلان','maghrib'],['jawla','آداب الجولة','maghrib'],['targheeb','الترغيب','maghrib'],['isha_b','بيان العشاء','isha']];
+const AMAL=[['halaqa_t','حلقة التعليم','duha'],['taam','آداب الطعام','dhuhr'],['sahaba','حياة الصحابة','isha'],['nawm','آداب النوم','isha'],['khidma_t','الخدمة','any']];
+const PLANS=[['jamaa','إزاي جماعتنا ترتقي'],['hayy','إزاي الحي والمسجد يتحسن لحد ما يبقى مسجد مقامي'],['naqdan','إزاي نخرج جماعة نقدًا']];
+const PROGRAM=[['night','قيام الليل','صلاة، قرآن، دعاء، استغفار'],['fajr','الفجر وبيان الفجر','ثم الاستعداد'],['fajr','أذكار الصباح',''],['fajr','المشورة اليومية',''],
+ ['duha','الفطار ووقت انفرادي',''],['duha','الضحى',''],['duha','حلقة التعليم','رياض الصالحين، آخر عشر سور، الصفات الستة'],['dhuhr','الظهر وحديثين الظهر',''],
+ ['dhuhr','تعليم انفرادي','حوالي ساعة ونص'],['dhuhr','آداب الطعام والغداء',''],['asr','العصر وبيان العصر','ثم الاستعداد'],['asr','الزيارات','لحد المغرب'],['asr','أذكار المساء','قبل المغرب'],
+ ['maghrib','المغرب والإعلان','ثم ركعتي السنة'],['maghrib','آداب الجولة والجولة','ترغيب جوه المسجد، وحركة برا'],['isha','العشاء وبيان العشاء','ثم الاستعداد ودعوة فردية'],
+ ['isha','آداب الطعام والعشاء',''],['isha','حياة الصحابة','حوالي نص ساعة'],['isha','آداب النوم','والاتفاق على ميعاد الصحيان']];
+const READY=['خلّص اللي في إيدك، وادخل الحمام لو محتاج','توضأ بخشوع، ومن غير إسراف في المية','اتجه للقبلة، وردّد مع المؤذن','ادعُ بعد الأذان، واغتنم الوقت لحد الإقامة'];
+/* ---------- governorates (Egyptian General Authority of Survey: Fajr 19.5°, Isha 17.5°) ---------- */
+const CITIES=[['cairo','القاهرة',30.0444,31.2357],['giza','الجيزة',30.0131,31.2089],['alex','الإسكندرية',31.2001,29.9187],['qalyubia','القليوبية',30.466,31.1848],
+ ['sharqia','الشرقية',30.5877,31.502],['dakahlia','الدقهلية',31.0409,31.3785],['gharbia','الغربية',30.7865,31.0004],['menofia','المنوفية',30.5526,31.0109],
+ ['beheira','البحيرة',31.0341,30.4682],['kafr','كفر الشيخ',31.1107,30.9388],['damietta','دمياط',31.4165,31.8133],['portsaid','بورسعيد',31.2653,32.3019],
+ ['ismailia','الإسماعيلية',30.5965,32.2715],['suez','السويس',29.9668,32.5498],['fayoum','الفيوم',29.3084,30.8428],['benisuef','بني سويف',29.0661,31.0994],
+ ['minya','المنيا',28.1099,30.7503],['assiut','أسيوط',27.1783,31.1859],['sohag','سوهاج',26.5591,31.6957],['qena','قنا',26.1551,32.716],['luxor','الأقصر',25.6872,32.6396],
+ ['aswan','أسوان',24.0889,32.8998],['redsea','البحر الأحمر',27.2579,33.8116],['matrouh','مطروح',31.3543,27.2373],['newvalley','الوادي الجديد',25.439,30.5586],
+ ['nsinai','شمال سيناء',31.1313,33.7984],['ssinai','جنوب سيناء',28.2416,33.6222]];
+
+/* ---------- storage ---------- */
+let mem=null; let db=null;
+function blank(){return {version:2,deeds:DEFAULT_DEEDS.map(d=>({...d,on:true})),logs:{},reviews:{},journeys:[],people:[],settings:{dayStart:'03:30',city:'cairo'}}}
+function load(){try{const s=localStorage.getItem(KEY);if(s)return migrate(JSON.parse(s))}catch(e){}return mem||seed(blank())}
+function migrate(d){
+  d.deeds=(d.deeds||[]).map(x=>{const def=DEFAULT_DEEDS.find(y=>y.id===x.id);return def?{...def,on:x.on!==false,goal:x.goal??def.goal}:x});
+  const ids=new Set(d.deeds.map(x=>x.id));DEFAULT_DEEDS.forEach(x=>{if(!ids.has(x.id))d.deeds.push({...x,on:true})});
+  d.deeds.sort((a,b)=>DEFAULT_DEEDS.findIndex(x=>x.id===a.id)-DEFAULT_DEEDS.findIndex(x=>x.id===b.id));
+  d.settings=Object.assign({dayStart:'03:30',city:'cairo'},d.settings||{});d.logs=d.logs||{};d.reviews=d.reviews||{};d.journeys=d.journeys||[];d.people=d.people||[];
+  Object.values(d.logs).forEach(day=>Object.values(day).forEach(e=>{if(e&&Array.isArray(e.checks)&&e.checks.includes('mosque')){e.place=e.place||'mosque';e.checks=e.checks.filter(x=>x!=='mosque')}}));
+  d.version=2;return d}
+function save(){mem=db;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+/* example entries for yesterday, shown with the purple "مثال" marking */
+function seed(d){const y=shift(dayKey(),-1);
+  d.logs[y]={fajr:{status:'done',place:'mosque',checks:['takbir'],refl:{heart:1,early:2}},rawatib:{status:'part',parts:['qf','qd']},dhuhr:{status:'done',place:'mosque'},
+    asr:{status:'done',place:'home_a'},am:{status:'done',refl:{meaning:1}},quran:{status:'part',juz:10,frac:2},dawah:{status:'part',val:14},
+    khidma:{status:'done',whom:['ahl'],what:'ساعدت في تجهيز الأكل'},_example:true};
+  d.reviews[y]={fix:'أبكّر لصلاة العصر قبل الأذان بعشر دقائق',thanks:'صلاة الفجر في المسجد',_example:true};return d}
+
+/* ---------- dates ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+function dsMin(){const [h,m]=(db?db.settings.dayStart:'03:30').split(':').map(Number);return h*60+m}
+function dayKey(){const now=new Date();const d=new Date(now);if(now.getHours()*60+now.getMinutes()<dsMin())d.setDate(d.getDate()-1);return keyOf(d)}
+function fromKey(k){const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12)}
+function shift(k,n){const d=fromKey(k);d.setDate(d.getDate()+n);return keyOf(d)}
+function diffDays(a,b){return Math.round((fromKey(b)-fromKey(a))/864e5)}
+function fmt(k,o){try{return new Intl.DateTimeFormat('ar-EG',o).format(fromKey(k))}catch(e){return k}}
+function hijri(k){try{return new Intl.DateTimeFormat('ar-EG-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'}).format(fromKey(k))}catch(e){return ''}}
+const num=n=>Number(n).toLocaleString('ar-EG');
+function hm(min){min=((Math.round(min)%1440)+1440)%1440;const h=Math.floor(min/60),m=min%60;const h12=((h+11)%12)+1;return num(h12)+':'+num(pad(m)).replace(/٬/g,'')+(h<12?' ص':' م')}
+function hmNum(min){min=((Math.round(min)%1440)+1440)%1440;return pad(Math.floor(min/60))+':'+pad(min%60)}
+function until(d){d=Math.max(0,Math.round(d));const h=Math.floor(d/60),m=d%60;return h?`${num(h)} س و${num(m)} د`:`${num(m)} دقيقة`}
+
+/* ---------- prayer times (offline) ---------- */
+const R=Math.PI/180,sn=d=>Math.sin(d*R),cs=d=>Math.cos(d*R),tn=d=>Math.tan(d*R),
+ asn=x=>Math.asin(x)/R,acs=x=>Math.acos(Math.max(-1,Math.min(1,x)))/R,at2=(y,x)=>Math.atan2(y,x)/R,acot=x=>Math.atan(1/x)/R,
+ fix=(a,b)=>{a=a-b*Math.floor(a/b);return a<0?a+b:a};
+function julian(y,m,d){if(m<=2){y-=1;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5}
+function sunPos(jd){const D=jd-2451545,g=fix(357.529+0.98560028*D,360),q=fix(280.459+0.98564736*D,360),L=fix(q+1.915*sn(g)+0.02*sn(2*g),360),e=23.439-0.00000036*D;
+  const RA=fix(at2(cs(e)*sn(L),cs(L))/15,24);return{decl:asn(sn(e)*sn(L)),eqt:q/15-RA}}
+function prayerTimes(date,lat,lng){
+  const jd=julian(date.getFullYear(),date.getMonth()+1,date.getDate())-lng/(15*24);
+  const tz=-date.getTimezoneOffset()/60;
+  const sp=t=>sunPos(jd+t/24),noon=t=>fix(12-sp(t).eqt,24);
+  const ang=(a,t,ccw)=>{const p=sp(t);const T=acs((-sn(a)-sn(p.decl)*sn(lat))/(cs(p.decl)*cs(lat)))/15;return noon(t)+(ccw?-T:T)};
+  const asr=t=>{const p=sp(t);return ang(-acot(1+tn(Math.abs(lat-p.decl))),t)};
+  let t={fajr:5,sunrise:6,dhuhr:12,asr:13,maghrib:18,isha:18};
+  for(let i=0;i<2;i++)t={fajr:ang(19.5,t.fajr,true),sunrise:ang(0.833,t.sunrise,true),dhuhr:noon(t.dhuhr),asr:asr(t.asr),maghrib:ang(0.833,t.maghrib),isha:ang(17.5,t.isha)};
+  const out={};for(const k in t)out[k]=(t[k]+tz-lng/15)*60+(k==='dhuhr'?2:0);return out}
+function city(){return CITIES.find(c=>c[0]===db.settings.city)||CITIES[0]}
+function timesFor(k){const c=city();return prayerTimes(fromKey(k),c[2],c[3])}
+
+/* ---------- state ---------- */
+db=load(); mem=db;
+let view={tab:'today',day:dayKey(),sub:null,ready:0,endAsk:false};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const deeds=()=>db.deeds.filter(d=>d.on);
+const shown=()=>deeds().filter(d=>!d.hidden);
+const byId=id=>db.deeds.find(x=>x.id===id);
+function L(k=view.day){return db.logs[k]||(db.logs[k]={})}
+function entry(id,k=view.day){const l=L(k);return l[id]||(l[id]={})}
+const statusOf=e=>e&&e.status||null;
+const isEx=k=>!!((db.logs[k]||{})._example);
+function tally(k,list=deeds()){const l=db.logs[k]||{};const c={done:0,part:0,miss:0,none:0,n:list.length};list.forEach(d=>{c[statusOf(l[d.id])||'none']++});c.rec=c.done+c.part+c.miss;return c}
+function barHTML(k,list=deeds()){const l=db.logs[k]||{};return '<div class="bar" aria-hidden="true">'+list.map(d=>`<span class="${statusOf(l[d.id])||''}"></span>`).join('')+'</div>'}
+function suggest(d,e){const v=Number(e.val||0);
+  if(d.kind==='counter'||d.kind==='rakaat'){if(!v)return e.status==='miss'?'miss':null;return v>=d.goal?'done':'part'}
+  if(d.kind==='learning'){return v>0||e.topic?'done':e.status||null}
+  if(d.kind==='parts'){const n=(e.parts||[]).length;if(!n)return null;return n>=d.parts.length?'done':'part'}
+  if(d.kind==='quran'){if(!e.frac)return e.status==='miss'?'miss':null;return e.frac>=4?'done':'part'}
+  if(d.kind==='service'){return (e.whom||[]).length?'done':null}
+  return e.status||null}
+function lastJuz(k){for(let i=1;i<=60;i++){const e=((db.logs[shift(k,-i)]||{}).quran)||{};if(e.juz)return e.frac>=4?(e.juz%30)+1:e.juz}return 1}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),1800)}
+const activeJ=()=>db.journeys.find(j=>j.status==='active');
+function jDay(j,k=dayKey()){return diffDays(j.start,k)+1}
+
+/* ---------- the current time window ---------- */
+function windowNow(){
+  const k=dayKey(),P=timesFor(k),d=new Date(),now=d.getHours()*60+d.getMinutes(),ds=dsMin();
+  const recorded=id=>!!statusOf((db.logs[k]||{})[id]);
+  let w;
+  if(now>=P.isha-10||now<ds)w={key:'isha',label:'وقت العشاء والليل',ids:['isha','qiyam']};
+  else if(now<P.fajr-10)w={key:'night',label:'آخر الليل',ids:['qiyam']};
+  else if(now<P.sunrise)w={key:'fajr',label:'وقت الفجر',ids:['fajr','am']};
+  else if(now<P.sunrise+15)w={key:'shuruq',label:'وقت الشروق',ids:['am'],note:`الضحى تبدأ ${hm(P.sunrise+15)}`};
+  else if(now<P.dhuhr-10)w={key:'duha',label:'وقت الضحى',ids:['duha'].concat(recorded('am')?[]:['am'])};
+  else if(now<P.asr-10)w={key:'dhuhr',label:'وقت الظهر',ids:['dhuhr']};
+  else if(now<P.maghrib-10)w={key:'asr',label:'وقت العصر',ids:['asr','pm']};
+  else w={key:'maghrib',label:'وقت المغرب',ids:['maghrib'].concat(recorded('pm')?[]:['pm'])};
+  const order=[['fajr','الفجر'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء']];
+  let nx=order.find(([id])=>P[id]>now);let nt;if(nx)nt=P[nx[0]];else{nx=order[0];nt=P.fajr+1440}
+  w.next={id:nx[0],name:nx[1],at:nt,in:nt-now};w.P=P;w.pre=w.next.in<=10;
+  w.ids=w.ids.filter(id=>{const d=byId(id);return d&&d.on});return w}
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view.tab?'page':'false'));
+  const app=$('#app');
+  if(view.tab==='today')app.innerHTML=view.sub?renderSub():renderToday();
+  if(view.tab==='log')app.innerHTML=renderLog();
+  if(view.tab==='more')app.innerHTML=renderMore();
+}
+const header=k=>`<header class="brand"><h1>وقفة</h1><div class="dates"><b>${fmt(k,{weekday:'long',day:'numeric',month:'long'})}</b>${esc(hijri(k))}</div></header>`;
+const subHead=t=>`<header class="subhead"><button class="back" data-act="back">→ اليوم</button><h1>${esc(t)}</h1></header>`;
+function viewingBanner(k){if(k===dayKey())return '';
+  return `<div class="viewing ${isEx(k)?'ex':''}"><span>تعرض يوم ${fmt(k,{weekday:'long',day:'numeric',month:'long'})}${isEx(k)?'<span class="exb">مثال</span>':''}</span><button class="link" data-act="go-today">رجوع لليوم</button></div>`}
+function renderToday(){
+  const k=view.day,today=dayKey(),c=tally(k);
+  const prevK=shift(k,-1),prev=db.reviews[prevK];
+  let h=header(k)+viewingBanner(k);
+  if(prev&&prev.fix)h+=`<div class="step ${prev._example?'ex':''}"><span class="k">خطوتك اليوم${prev._example?'<span class="exb">مثال</span>':''}</span><span>${esc(prev.fix)}</span></div>`;
+  if(k===today)h+=renderNow();
+  h+='<div class="tiles">'+CATS.map(([id,name,sub])=>{const list=shown().filter(d=>d.cat===id);const t=tally(k,list.concat(id==='ibadat'&&byId('rawatib').on?[byId('rawatib')]:[]));
+    return `<button class="tile" data-act="sub" data-v="${id}"><b>${name}</b><span>${list.length?`سجّلت ${num(t.rec)} من ${num(t.n)}`:esc(sub)}</span>${barHTML(k,list)}</button>`}).join('');
+  const j=activeJ();
+  h+=`<button class="tile journey" data-act="sub" data-v="khuruj"><b>الخروج</b><span>${j?`${esc(JTYPES[j.type].label)} · اليوم ${num(Math.max(1,Math.min(jDay(j),j.days)))} من ${num(j.days)}`:'٣ أيام، أو ٤٠ يوم، أو ٤ شهور'}</span></button></div>`;
+  h+=`<section class="progress"><div class="row"><span>سجّلت ${num(c.rec)} من ${num(c.n)} النهارده</span><button class="link" data-act="sub" data-v="all">اليوم كامل ←</button></div>${barHTML(k)}</section>`;
+  const r=db.reviews[k];const hasR=r&&(r.fix||r.thanks||r.more);
+  h+=`<section class="card review ${r&&r._example?'ex':''}"><h2>محاسبة الليلة</h2><p class="note">${hasR?'كتبت محاسبة هذا اليوم. تقدر تراجعها أو تعدّلها.':'قبل النوم: ما اجتهدت فيه، وما فاتك، وخطوة واحدة لبكرة.'}</p><button class="btn" data-act="review">${hasR?'افتح المحاسبة':'ابدأ المحاسبة'}</button></section>`;
+  return h}
+function renderNow(){
+  const w=windowNow(),P=w.P,k=dayKey();
+  let h=`<section class="card now"><div class="top"><h2>دلوقتي · ${w.label}</h2><span class="next">${esc(w.next.name)} <b>${hm(w.next.at)}</b> · بعد ${until(w.next.in)}</span></div>`;
+  if(w.note)h+=`<p class="note">${esc(w.note)}</p>`;
+  if(w.pre){const i=Math.min(view.ready,READY.length);
+    h+=`<div class="ready"><span class="k">استعداد لصلاة ${esc(w.next.name)}</span>`+(i<READY.length?`<span>${num(i+1)}. ${READY[i]}</span><div class="inline"><button class="btn small" data-act="ready">تمام</button></div>`:'<span>جاهز، ربنا يتقبّل.</span>')+'</div>'}
+  const j=activeJ();
+  if(j){const sh=(j.shura||{})[k];if(sh&&sh.assign){const mine=BAYANAT.concat(AMAL).filter(([id,,win])=>sh.assign[id]&&sh.assign[id].mine&&(win===w.key||win==='any'));
+    if(mine.length)h+=`<div class="mine">عليك النهارده: <b>${mine.map(x=>x[1]).join('، ')}</b>${mine.some(x=>BAYANAT.find(b=>b[0]===x[0]))?'<br><span class="note">البيان: المقصد، ثم الفضل، ثم الحديث، ثم القصة، ثم الاستعداد.</span>':''}</div>`}}
+  h+='<div class="deeds">'+w.ids.map(id=>deedCard(byId(id),k)).join('')+'</div>';
+  const any=['quran','dawah','khidma'].filter(id=>{const d=byId(id);return d&&d.on&&!statusOf((db.logs[k]||{})[id])});
+  if(any.length)h+=`<div class="anytime"><span class="note">وفي أي وقت:</span>${any.map(id=>`<button class="chip" data-act="sub" data-v="${byId(id).cat}">${esc(byId(id).name)}</button>`).join('')}</div>`;
+  h+=`<div class="times" aria-label="مواقيت الصلاة">${[['fajr','الفجر'],['dhuhr','الظهر'],['asr','العصر'],['maghrib','المغرب'],['isha','العشاء']].map(([id,n])=>`<div class="${w.next.id===id?'cur':''}">${n}<b>${hm(P[id])}</b></div>`).join('')}</div>`;
+  h+=`<p class="note">مواقيت ${esc(city()[1])} تقريبية، وتقدر تغيّر المحافظة من "المزيد".</p></section>`;
+  return h}
+function renderSub(){
+  const s=view.sub,k=view.day;
+  if(s==='khuruj')return renderKhuruj();
+  if(s==='shura')return renderShura();
+  if(s==='all'){let h=subHead('اليوم كامل')+viewingBanner(k);
+    CATS.forEach(([id,name])=>{const list=shown().filter(d=>d.cat===id);if(!list.length)return;h+=`<h2 class="sec">${name}</h2><div class="deeds">${list.map(d=>deedCard(d,k)).join('')}</div>`});return h}
+  const cat=CATS.find(c=>c[0]===s);const list=shown().filter(d=>d.cat===s);
+  return subHead(cat[1])+viewingBanner(k)+`<div class="deeds">${list.map(d=>deedCard(d,k)).join('')||'<p class="note">ما فيش أعمال مفعّلة هنا. تقدر تفعّلها من "المزيد".</p>'}</div>`}
+function deedCard(d,k){
+  const e=(db.logs[k]||{})[d.id]||{},st=statusOf(e),has=e.refl&&Object.keys(e.refl).length||e.note||e.next||e.quality!=null;
+  const ex=isEx(k)&&(st||Object.keys(e).length);
+  const labels=d.kind==='prayer'?ST_PRAYER:ST;
+  const segs=`<div class="seg" role="group" aria-label="حالة ${esc(d.name)}">${Object.entries(labels).map(([v,t])=>`<button data-act="st" data-id="${d.id}" data-v="${v}" aria-pressed="${st===v}">${t}</button>`).join('')}</div>`;
+  let body='';
+  if(d.kind==='prayer'){const ch=e.checks||[],pl=e.place||'';const raw=byId('rawatib'),rp=(((db.logs[k]||{}).rawatib)||{}).parts||[];
+    const sun=(raw&&raw.on?d.sunnah||[]:[]);const sb=w=>sun.filter(x=>x[3]===w).map(([v,t,r])=>`<button class="chip sunnah" data-act="rawatib" data-v="${v}" aria-pressed="${rp.includes(v)}">${t} · ${num(r)}</button>`).join('');
+    const extra=pl==='mosque'?[['takbir','تكبيرة الإحرام'],['row','الصف الأول']]:pl==='home_j'?[['takbir','تكبيرة الإحرام']]:[];
+    body=(sb('before')?`<div class="chips">${sb('before')}</div>`:'')+segs
+      +`<div class="q"><span class="note">صليت فين؟</span><div class="chips">${[['mosque','في المسجد'],['home_j','في البيت جماعة'],['home_a','في البيت منفردًا']].map(([v,t])=>`<button class="chip" data-act="place" data-id="${d.id}" data-v="${v}" aria-pressed="${pl===v}">${t}</button>`).join('')}</div></div>`
+      +(extra.length?`<div class="chips">${extra.map(([v,t])=>`<button class="chip" data-act="chk" data-id="${d.id}" data-v="${v}" aria-pressed="${ch.includes(v)}">${t}</button>`).join('')}</div>`:'')
+      +(sb('after')?`<div class="chips">${sb('after')}</div>`:'')}
+  else if(d.kind==='check')body=segs;
+  else if(d.kind==='counter'||d.kind==='rakaat'){const v=Number(e.val||0);
+    body=`<div class="counter"><button data-act="inc" data-id="${d.id}" data-n="-1" aria-label="أقل">−</button><output>${num(v)}</output><button data-act="inc" data-id="${d.id}" data-n="1" aria-label="أكثر">+</button><span class="goal">من ${num(d.goal)} ${d.kind==='rakaat'?'ركعة':esc(d.unit||'')}</span></div>`;
+    if(d.subs){const s=e.subs||[];body+=`<div class="chips">${d.subs.map(t=>`<button class="chip" data-act="sub-chk" data-id="${d.id}" data-v="${t}" aria-pressed="${s.includes(t)}">${t}</button>`).join('')}</div>`}
+    body+=segs}
+  else if(d.kind==='quran'){const jz=e.juz||lastJuz(k);
+    body=`<div class="inline"><label class="note" for="juz-${d.id}">الجزء</label><select class="sel" id="juz-${d.id}" data-act="juz" data-id="${d.id}">${Array.from({length:30},(_,i)=>`<option value="${i+1}"${jz===i+1?' selected':''}>${num(i+1)}</option>`).join('')}</select></div>`
+      +`<div class="q"><span class="note">قريت قد إيه منه؟</span><div class="chips">${FRAC.map(([v,t])=>`<button class="chip" data-act="frac" data-id="${d.id}" data-v="${v}" aria-pressed="${e.frac===v}">${t}</button>`).join('')}</div></div>`
+      +`<div class="seg"><button data-act="st" data-id="${d.id}" data-v="miss" aria-pressed="${st==='miss'}">لم أقرأ اليوم</button></div>`}
+  else if(d.kind==='learning'){body=`<div class="inline"><input type="number" inputmode="numeric" min="0" id="min-${d.id}" data-act="val" data-id="${d.id}" value="${e.val||''}" placeholder="دقائق"><input type="text" id="topic-${d.id}" data-act="topic" data-id="${d.id}" value="${esc(e.topic||'')}" placeholder="في إيه؟ (كتاب أو موضوع)"></div>`+segs}
+  else if(d.kind==='service'){const wh=e.whom||[];
+    body=`<div class="q"><span class="note">خدمت مين النهارده؟</span><div class="chips">${WHOM.map(([v,t])=>`<button class="chip" data-act="whom" data-id="${d.id}" data-v="${v}" aria-pressed="${wh.includes(v)}">${t}</button>`).join('')}</div></div>
+      <label class="f" for="what-${d.id}"><span class="note">خدمته في إيه؟</span><input class="inp" type="text" id="what-${d.id}" data-act="what" data-id="${d.id}" value="${esc(e.what||'')}" placeholder="مثلًا: ساعدت جاري يشيل حاجة"></label>`}
+  return `<article class="deed ${ex?'ex':''}" data-st="${st||''}"><div class="dh"><h3>${esc(d.name)}${ex?'<span class="exb">مثال</span>':''}</h3></div>${body}<button class="reflect ${has?'has':''}" data-act="refl" data-id="${d.id}"><span class="dot"></span>${has?'وقفة القلب · مكتوبة':'وقفة القلب'}</button></article>`}
+
+/* ---------- journey screens ---------- */
+function jStats(j){
+  const end=j.status==='active'?dayKey():j.end;const last=fromKey(end)<fromKey(shift(j.start,j.days-1))?end:shift(j.start,j.days-1);
+  const n=Math.max(0,diffDays(j.start,last)+1);let s={n,qiyam:0,fajrM:0,mosque:0,halaqa:0,dawah:0,juz:0,khidma:0};
+  for(let i=0;i<n;i++){const l=db.logs[shift(j.start,i)]||{};if(l._example)continue;
+    if(['done','part'].includes(statusOf(l.qiyam)))s.qiyam++;if((l.fajr||{}).place==='mosque')s.fajrM++;
+    ['fajr','dhuhr','asr','maghrib','isha'].forEach(p=>{if((l[p]||{}).place==='mosque')s.mosque++});
+    if(statusOf(l.halaqa)==='done')s.halaqa++;s.dawah+=Number((l.dawah||{}).val||0);s.juz+=Number((l.quran||{}).frac||0)/4;if(statusOf(l.khidma)==='done')s.khidma++}
+  return s}
+function renderKhuruj(){
+  let h=subHead('الخروج');const j=activeJ();
+  if(!j){const sel=view.jtype||'d40';
+    h+=`<p class="note">اختار مدة الخروج. أعمالك اليومية بتتسجل زي ما هي، والخروج بيضيف عليها المساجد والمشورة والأحباب.</p><div class="types">`
+      +Object.entries(JTYPES).map(([id,t])=>`<button class="type" data-act="jtype" data-v="${id}" aria-pressed="${sel===id}"><b>${t.label}</b><span class="note">${t.hint}</span></button>`).join('')+'</div>'
+      +`<section class="card"><label class="f" for="jstart">تاريخ البداية<input class="inp ltr" type="date" id="jstart" value="${dayKey()}"></label><button class="btn" data-act="jbegin">ابدأ ${esc(JTYPES[sel].label)}</button></section>`;
+    const old=db.journeys.filter(x=>x.status==='archived');
+    if(old.length)h+=`<h2 class="sec">خروج سابق</h2><div class="days">${old.map(o=>{const s=jStats(o);return `<div class="card"><b>${esc(JTYPES[o.type].label)}</b><span class="note">من ${fmt(o.start,{day:'numeric',month:'long',year:'numeric'})} · ${num(s.n)} يوم · ${num((o.mosques||[]).length)} مسجد · ${num(db.people.filter(p=>p.j===o.id).length)} من الأحباب</span></div>`}).join('')}</div>`;
+    return h}
+  const t=JTYPES[j.type],d=jDay(j),s=jStats(j),w=windowNow();
+  const st=j.stages.find(x=>x.id===j.curStage)||j.stages[0];const ms=(j.mosques||[]);const cm=ms[ms.length-1];
+  h+=`<section class="card"><h2>${esc(t.label)} · اليوم ${num(Math.max(1,Math.min(d,j.days)))} من ${num(j.days)}</h2><div class="bar" aria-hidden="true">${Array.from({length:Math.min(j.days,40)},(_,i)=>{const f=j.days/Math.min(j.days,40);return `<span class="${(i+1)*f<=d?'done':''}"></span>`}).join('')}</div>
+    <div class="inline"><label class="note" for="jstage">المرحلة الحالية</label><select class="sel" id="jstage" data-act="jstage">${j.stages.map(x=>`<option value="${x.id}"${x.id===st.id?' selected':''}>${esc(x.name)} (${esc(x.kind)})</option>`).join('')}</select></div>
+    <div class="inline"><input class="inp" type="text" id="stageName" placeholder="سمّ المرحلة، مثلًا: محافظة الفيوم"><select class="sel" id="stageKind">${STAGE_KINDS.map(x=>`<option${x===t.stageKind?' selected':''}>${x}</option>`).join('')}</select><button class="btn small ghost" data-act="stage-add">أضف مرحلة</button></div>
+    <div class="inline"><button class="btn small ghost" data-act="stage-rename">سمّ المرحلة الحالية بالاسم المكتوب</button></div></section>`;
+  const since=cm?diffDays(cm.start,dayKey()):0;
+  h+=`<section class="card"><h2>المسجد</h2><p>${cm?`<b>${esc(cm.name)}</b> <span class="note">من ${fmt(cm.start,{weekday:'long',day:'numeric',month:'long'})} · في ${esc((j.stages.find(x=>x.id===cm.stage)||{}).name||'')}</span>`:'<span class="note">لسه ما سجلتش المسجد.</span>'}</p>
+    ${cm&&j.type!=='d3'&&since>=3?'<p class="note">بقالكم ٣ أيام في المسجد ده. لو انتقلتوا، سجّل المسجد الجديد.</p>':''}
+    <div class="inline"><input class="inp" type="text" id="mosqueName" placeholder="اسم المسجد"><button class="btn small" data-act="mosque-add">${cm?'انتقلنا لمسجد جديد':'سجّل المسجد'}</button></div>
+    ${ms.length>1?`<p class="note">المساجد: ${ms.map(m=>esc(m.name)).join('، ')}</p>`:''}</section>`;
+  h+=`<section class="card"><h2>المشورة</h2><p class="note">تسميع الأحوال، والبنود التلاتة، وتوزيع الأعمال.</p><button class="btn" data-act="sub" data-v="shura">مشورة ${fmt(view.day,{weekday:'long'})}</button></section>`;
+  h+=`<section class="card"><h2>برنامج اليوم والليلة</h2><div class="prog">${PROGRAM.map(([win,n,sub])=>`<div class="${win===w.key?'cur':''}"><b>${n}</b>${sub?`<small>${sub}</small>`:''}</div>`).join('')}</div></section>`;
+  h+=`<section class="card"><h2>المهمة لحد دلوقتي</h2><p class="note">من تسجيلاتك في ${num(s.n)} يوم.</p><div class="stat">
+    <span>أيام قيام الليل</span><span>${num(s.qiyam)} من ${num(s.n)}</span><span>الفجر في المسجد</span><span>${num(s.fajrM)} من ${num(s.n)}</span>
+    <span>الصلوات في المسجد</span><span>${num(s.mosque)} من ${num(s.n*5)}</span><span>أيام حلقة العلم</span><span>${num(s.halaqa)} من ${num(s.n)}</span>
+    <span>الدعوة الفردية</span><span>${num(s.dawah)} شخص</span><span>القرآن</span><span>${num(Math.round(s.juz*4)/4)} جزء</span><span>أيام الخدمة</span><span>${num(s.khidma)}</span></div><p class="note">${DISCLAIMER}</p></section>`;
+  const ppl=db.people.filter(p=>p.j===j.id);
+  h+=`<section class="card"><h2>الأحباب في الخروج ده · ${num(ppl.length)}</h2>${ppl.length?`<div class="ppl">${ppl.slice().reverse().map(p=>`<div><span>${esc(p.name)} <span class="note">· ${esc(p.mosque||'')} · ${fmt(p.date,{day:'numeric',month:'short'})}</span></span><span class="ph">${esc(p.phone||'')}</span></div>`).join('')}</div>`:'<p class="note">الأرقام اللي تسجلها في تسميع الأحوال بتظهر هنا.</p>'}</section>`;
+  h+=`<section class="card"><h2>إنهاء الخروج</h2><p class="note">الخروج يتأرشف، وكل تسجيلاتك اليومية تفضل في السجل.</p>${view.endAsk?'<div class="inline"><button class="btn" data-act="jend-yes">أيوه، أنهِ الخروج</button><button class="btn ghost" data-act="jend-no">لا</button></div>':'<div class="inline"><button class="btn ghost" data-act="jend">أنهِ الخروج</button></div>'}</section>`;
+  return h}
+function shuraOf(j,k){j.shura=j.shura||{};return j.shura[k]||(j.shura[k]={ahwal:{},plans:{},assign:{}})}
+function renderShura(){
+  const j=activeJ();if(!j){view.sub='khuruj';return renderKhuruj()}
+  const k=view.day,sh=(j.shura||{})[k]||{ahwal:{},plans:{},assign:{}},pv=(j.shura||{})[shift(k,-1)];
+  const ta=(id,ph,val)=>`<textarea id="${id}" data-act="shura" data-path="${id}" placeholder="${ph}">${esc(val||'')}</textarea>`;
+  let h=subHead('المشورة')+`<p class="note">${fmt(k,{weekday:'long',day:'numeric',month:'long'})} · ${esc(JTYPES[j.type].label)}، اليوم ${num(Math.max(1,jDay(j,k)))}</p>`;
+  h+=`<section class="card"><h2>١. تسميع الأحوال</h2>
+    <label class="f" for="ahwal.visited">زرنا مين${ta('ahwal.visited','أسماء البيوت أو الأشخاص',sh.ahwal.visited)}</label>
+    <label class="f" for="ahwal.talked">كلمنا مين${ta('ahwal.talked','ومين مستعد لإيه',sh.ahwal.talked)}</label>
+    <div class="q"><span>أخدنا أرقام مين</span>
+      <div class="inline"><input class="inp" type="text" id="pName" placeholder="الاسم"><input class="inp ltr" type="tel" id="pPhone" placeholder="الرقم" style="text-align:right"></div>
+      <div class="inline"><button class="btn small" data-act="person-add">أضف للأحباب</button></div>
+      ${(()=>{const p=db.people.filter(x=>x.j===j.id&&x.date===k);return p.length?`<div class="ppl">${p.map(x=>`<div><span>${esc(x.name)}</span><span class="ph">${esc(x.phone)}</span></div>`).join('')}</div>`:''})()}</div>
+    <label class="f" for="ahwal.other">أحوال تانية${ta('ahwal.other','',sh.ahwal.other)}</label></section>`;
+  h+=`<section class="card"><h2>٢. هنعمل إيه النهارده، وإزاي</h2>${PLANS.map(([id,q])=>`<label class="f" for="plans.${id}">${q}${pv&&pv.plans&&pv.plans[id]?`<span class="prev">امبارح: ${esc(pv.plans[id])}</span>`:''}${ta('plans.'+id,'الخطة',sh.plans[id])}</label>`).join('')}</section>`;
+  const row=([id,n])=>{const a=sh.assign[id]||{};return `<span>${n}</span><input class="inp" type="text" id="as-${id}" data-act="assign" data-v="${id}" value="${esc(a.who||'')}" placeholder="مين؟"><button class="chip" data-act="mine" data-v="${id}" aria-pressed="${!!a.mine}">عليّ</button>`};
+  h+=`<section class="card"><h2>٣. توزيع الأعمال</h2><p class="note">اضغط "عليّ" على اللي عليك، فيظهرلك في "دلوقتي" في وقته.</p>
+    <h3 class="sec">البيانات</h3><div class="assign">${BAYANAT.map(row).join('')}</div><h3 class="sec">الأعمال</h3><div class="assign">${AMAL.map(row).join('')}</div></section>`;
+  return h+'<div class="inline"><button class="btn ghost" data-act="sub" data-v="khuruj">رجوع للخروج</button></div>'}
+
+/* ---------- log & more ---------- */
+function renderLog(){
+  const keys=new Set(Object.keys(db.logs).concat(Object.keys(db.reviews)));keys.add(dayKey());
+  let h=`<header class="brand"><h1>السجل</h1></header><p class="note">${DISCLAIMER}</p><div class="days">`;
+  [...keys].sort().reverse().forEach(k=>{const c=tally(k);const ex=isEx(k);
+    h+=`<button class="day ${ex?'ex':''}" data-act="open-day" data-k="${k}"><span><b>${fmt(k,{weekday:'long',day:'numeric',month:'long'})}</b>${k===dayKey()?' · اليوم':''}${ex?'<span class="exb">مثال</span>':''}</span><span class="c">${num(c.done)} تم · ${num(c.part)} جزئي</span>${barHTML(k)}</button>`});
+  return h+'</div>'}
+function renderMore(){
+  const s=db.settings;
+  return `<header class="brand"><h1>المزيد</h1></header>
+  <section class="card"><h2>المحافظة ومواقيت الصلاة</h2><p class="note">المواقيت بتتحسب على الموبايل من غير نت، بطريقة الهيئة المصرية العامة للمساحة.</p>
+   <div class="inline"><select class="sel" id="city" data-act="city">${CITIES.map(c=>`<option value="${c[0]}"${c[0]===s.city?' selected':''}>${c[1]}</option>`).join('')}</select></div></section>
+  <section class="card"><h2>بداية اليوم</h2><p class="note">قيام الليل بعد منتصف الليل يُحسب لليلة نفسها. اليوم الجديد يبدأ من الساعة دي (خليها قبل الفجر بشوية).</p>
+   <div class="inline"><input class="inp ltr" type="time" id="dayStart" value="${s.dayStart}" data-act="daystart" style="flex:0 0 140px"></div></section>
+  <section class="card"><h2>الأعمال</h2><p class="note">اختار الأعمال اللي تظهر في يومك. السجلات القديمة ما بتتمسحش.</p>
+   <div class="chips">${db.deeds.map(d=>`<button class="chip" data-act="toggle" data-id="${d.id}" aria-pressed="${d.on}">${esc(d.name)}</button>`).join('')}</div>
+   <label class="f" for="dawahGoal">هدف الدعوة الفردية في اليوم<input class="inp" type="number" min="1" id="dawahGoal" data-act="goal" value="${(byId('dawah')||{}).goal||25}" style="max-width:120px"></label></section>
+  <section class="card"><h2>النسخة الاحتياطية</h2><p class="note">انسخ النسخة واحفظها في "الملاحظات" على الموبايل. ولو احتجت ترجعها، الصقها هنا.</p>
+   <div class="inline"><button class="btn" data-act="copy">انسخ النسخة الاحتياطية</button></div>
+   <textarea id="importBox" placeholder="الصق النسخة الاحتياطية هنا"></textarea>
+   <div class="inline"><button class="btn ghost" data-act="import">استرجع من النسخة</button></div></section>
+  <section class="card ex"><h2>بيانات المثال<span class="exb">مثال</span></h2><p class="note">أي حاجة بالإطار البنفسجي ده مثال، عشان تشوف شكل التسجيل. امسحها لما تبدأ.</p>
+   <div class="inline"><button class="btn ghost" data-act="clear-ex">امسح بيانات المثال</button></div></section>
+  <p class="ayah">﴿بَلِ الْإِنسَانُ عَلَىٰ نَفْسِهِ بَصِيرَةٌ﴾ [القيامة: 14]</p>
+  <p class="note">${DISCLAIMER}</p>`}
+
+/* ---------- sheets ---------- */
+function sheet(html,onSave){
+  const s=document.createElement('div');s.className='scrim';s.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}<div class="acts"><button class="btn" data-s="save">حفظ</button><button class="btn ghost" data-s="close">إغلاق</button></div></div>`;
+  s.addEventListener('click',ev=>{const b=ev.target.closest('[data-s],[data-o]');
+    if(ev.target===s||b&&b.dataset.s==='close'){s.remove();return}
+    if(b&&b.dataset.s==='save'){onSave(s);s.remove();save();render();toast('اتحفظت');return}
+    if(b&&b.dataset.o!=null){b.parentElement.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true')}});
+  document.body.appendChild(s)}
+function openReflect(id){
+  const d=byId(id),e=entry(id),r=e.refl||{};
+  const qs=(T[d.t]||[]).map(q=>`<div class="q" data-q="${q.id}"><span>${q.q}</span><div class="chips">${q.o.map((o,i)=>`<button class="chip" data-o="${i}" aria-pressed="${r[q.id]===i}">${o}</button>`).join('')}</div></div>`).join('');
+  sheet(`<h2>وقفة القلب · ${esc(d.name)}</h2><p class="note">كلها اختيارية. اكتب اللي يفيدك بس.</p>${qs}
+   <div class="q" data-q="_quality"><span>أديته زي ما نويت؟</span><div class="chips">${['لا','إلى حدٍّ ما','نعم'].map((o,i)=>`<button class="chip" data-o="${i}" aria-pressed="${e.quality===i}">${o}</button>`).join('')}</div></div>
+   <label class="f" for="r-note">إيه اللي ساعدني أو شتّتني؟<textarea id="r-note">${esc(e.note||'')}</textarea></label>
+   <label class="f" for="r-next">خطوة أجرّبها المرة الجاية<textarea id="r-next" style="min-height:48px">${esc(e.next||'')}</textarea></label>`,
+  s=>{const rr={};delete L()._example;s.querySelectorAll('.q').forEach(q=>{const p=q.querySelector('[aria-pressed="true"]');if(!p)return;const v=Number(p.dataset.o);if(q.dataset.q==='_quality')e.quality=v;else rr[q.dataset.q]=v});
+    e.refl=rr;e.note=s.querySelector('#r-note').value.trim();e.next=s.querySelector('#r-next').value.trim()})}
+function openReview(){
+  const k=view.day,l=db.logs[k]||{},r=db.reviews[k]||{};
+  const name=d=>d.kind==='prayer'&&statusOf(l[d.id])==='part'?d.name+' (قضاء)':d.name;
+  const did=deeds().filter(d=>statusOf(l[d.id])==='done').map(name),part=deeds().filter(d=>statusOf(l[d.id])==='part').map(name),
+    missed=deeds().filter(d=>{const s=statusOf(l[d.id]);return s==='miss'||!s}).map(d=>d.name);
+  const li=a=>a.length?`<ul class="list">${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="note">لا شيء مسجّل.</p>';
+  sheet(`<h2>محاسبة الليلة</h2><p class="note">${DISCLAIMER}</p>
+   <div class="q"><span>اجتهدت فيه النهارده</span>${li(did)}</div>${part.length?`<div class="q"><span>عملته جزئيًا أو قضاءً</span>${li(part)}</div>`:''}
+   <div class="q"><span>ما سجّلتوش أو فاتني</span>${li(missed)}</div>
+   <label class="f" for="rv-more">حاجة تانية اجتهدت فيها أو قصّرت فيها<textarea id="rv-more">${esc(r.more||'')}</textarea></label>
+   <label class="f" for="rv-fix">خطوة واحدة أظبطها بكرة<textarea id="rv-fix" style="min-height:48px">${esc(r.fix||'')}</textarea></label>
+   <label class="f" for="rv-thanks">حاجة أشكر ربنا عليها النهارده<textarea id="rv-thanks" style="min-height:48px">${esc(r.thanks||'')}</textarea></label>`,
+  s=>{db.reviews[k]={more:s.querySelector('#rv-more').value.trim(),fix:s.querySelector('#rv-fix').value.trim(),thanks:s.querySelector('#rv-thanks').value.trim()}})}
+
+/* ---------- events ---------- */
+function toggleIn(arr,v){const i=arr.indexOf(v);i<0?arr.push(v):arr.splice(i,1);return arr}
+document.addEventListener('click',ev=>{
+  const t=ev.target.closest('[data-tab]');if(t){view.tab=t.dataset.tab;view.sub=null;render();window.scrollTo(0,0);return}
+  const b=ev.target.closest('[data-act]');if(!b||b.closest('.scrim')||b.tagName==='SELECT'||b.tagName==='INPUT'||b.tagName==='TEXTAREA')return;
+  const a=b.dataset.act,id=b.dataset.id,d=id&&byId(id);
+  if(['st','chk','inc','sub-chk','place','frac','whom'].includes(a)){const e=entry(id);delete L()._example;
+    if(a==='st'){e.status=e.status===b.dataset.v?null:b.dataset.v}
+    if(a==='chk')toggleIn(e.checks||(e.checks=[]),b.dataset.v);
+    if(a==='sub-chk')toggleIn(e.subs||(e.subs=[]),b.dataset.v);
+    if(a==='place'){e.place=e.place===b.dataset.v?null:b.dataset.v;const keep=e.place==='mosque'?['takbir','row']:e.place==='home_j'?['takbir']:[];e.checks=(e.checks||[]).filter(x=>keep.includes(x));if(e.place&&!e.status)e.status='done'}
+    if(a==='inc'){e.val=Math.max(0,Number(e.val||0)+Number(b.dataset.n));e.status=suggest(d,e)}
+    if(a==='frac'){const v=Number(b.dataset.v);e.frac=e.frac===v?null:v;const sel=document.getElementById('juz-'+id);e.juz=Number(sel?sel.value:e.juz||1);e.status=suggest(d,e)}
+    if(a==='whom'){toggleIn(e.whom||(e.whom=[]),b.dataset.v);e.status=suggest(d,e)}
+    save();render();return}
+  if(a==='rawatib'){const e=entry('rawatib');delete L()._example;toggleIn(e.parts||(e.parts=[]),b.dataset.v);e.status=suggest(byId('rawatib'),e);save();render();return}
+  if(a==='refl')return openReflect(id);
+  if(a==='review')return openReview();
+  if(a==='sub'){view.sub=b.dataset.v;view.endAsk=false;render();window.scrollTo(0,0);return}
+  if(a==='back'){view.sub=null;render();window.scrollTo(0,0);return}
+  if(a==='ready'){view.ready++;render();return}
+  if(a==='go-today'){view.day=dayKey();render();return}
+  if(a==='open-day'){view.day=b.dataset.k;view.tab='today';view.sub=null;render();window.scrollTo(0,0);return}
+  if(a==='toggle'){d.on=!d.on;save();render();return}
+  /* journey */
+  if(a==='jtype'){view.jtype=b.dataset.v;render();return}
+  if(a==='jbegin'){const ty=view.jtype||'d40',t=JTYPES[ty],start=($('#jstart')||{}).value||dayKey();const jid='j'+Date.now();
+    const stages=t.stages.map((n,i)=>({id:jid+'s'+i,name:n,kind:t.stageKind}));
+    db.journeys.push({id:jid,type:ty,days:t.days,start,status:'active',stages,curStage:stages[0].id,mosques:[],shura:{}});save();render();toast('بدأ الخروج، ربنا يتقبّل');return}
+  const j=activeJ();
+  if(a==='stage-add'&&j){const n=$('#stageName').value.trim();if(!n){toast('اكتب اسم المرحلة الأول');return}const st={id:j.id+'s'+Date.now(),name:n,kind:$('#stageKind').value};j.stages.push(st);j.curStage=st.id;save();render();return}
+  if(a==='stage-rename'&&j){const n=$('#stageName').value.trim();if(!n){toast('اكتب الاسم الأول');return}const st=j.stages.find(x=>x.id===j.curStage);st.name=n;st.kind=$('#stageKind').value;save();render();return}
+  if(a==='mosque-add'&&j){const n=$('#mosqueName').value.trim();if(!n){toast('اكتب اسم المسجد الأول');return}j.mosques.push({id:'m'+Date.now(),name:n,stage:j.curStage,start:dayKey()});save();render();toast('اتسجل المسجد');return}
+  if(a==='jend'){view.endAsk=true;render();return}
+  if(a==='jend-no'){view.endAsk=false;render();return}
+  if(a==='jend-yes'&&j){j.status='archived';j.end=dayKey();view.endAsk=false;save();render();toast('اتأرشف الخروج');return}
+  if(a==='person-add'&&j){const n=$('#pName').value.trim(),p=$('#pPhone').value.trim();if(!n){toast('اكتب الاسم الأول');return}
+    const cm=j.mosques[j.mosques.length-1];db.people.push({id:'p'+Date.now(),name:n,phone:p,date:view.day,j:j.id,mosque:cm?cm.name:'',stage:j.curStage});save();render();toast('اتضاف للأحباب');return}
+  if(a==='mine'&&j){const sh=shuraOf(j,view.day);const x=sh.assign[b.dataset.v]||(sh.assign[b.dataset.v]={});x.mine=!x.mine;save();render();return}
+  /* backup */
+  if(a==='copy'){const txt=JSON.stringify(db);try{navigator.clipboard.writeText(txt).then(()=>toast('اتنسخت. الصقها في الملاحظات'),()=>fallbackCopy(txt))}catch(e){fallbackCopy(txt)}return}
+  if(a==='import'){try{const d2=migrate(JSON.parse($('#importBox').value));if(!d2.deeds||!d2.logs)throw 0;db=d2;save();render();toast('اترجعت النسخة')}catch(e){toast('النص ده مش نسخة احتياطية سليمة')}return}
+  if(a==='clear-ex'){Object.keys(db.logs).forEach(k=>{if(db.logs[k]._example)delete db.logs[k]});Object.keys(db.reviews).forEach(k=>{if(db.reviews[k]._example)delete db.reviews[k]});save();render();toast('اتمسحت بيانات المثال');return}
+});
+function fallbackCopy(txt){const box=$('#importBox');box.value=txt;box.select();toast('حدّد النص وانسخه يدويًا')}
+document.addEventListener('change',ev=>{const el=ev.target,a=el.dataset.act;if(!a)return;
+  if(a==='val'||a==='topic'||a==='what'){const d=byId(el.dataset.id),e=entry(el.dataset.id);delete L()._example;
+    if(a==='val')e.val=Math.max(0,Number(el.value||0));if(a==='topic')e.topic=el.value.trim();if(a==='what')e.what=el.value.trim();
+    e.status=suggest(d,e);save();render();return}
+  if(a==='juz'){const e=entry(el.dataset.id);delete L()._example;e.juz=Number(el.value);save();return}
+  if(a==='daystart'){db.settings.dayStart=el.value||'03:30';save();toast('اتحفظ');return}
+  if(a==='city'){db.settings.city=el.value;save();toast('اتحفظت المحافظة');return}
+  if(a==='goal'){byId('dawah').goal=Math.max(1,Number(el.value||25));save();toast('اتحفظ');return}
+  const j=activeJ();if(!j)return;
+  if(a==='jstage'){j.curStage=el.value;save();return}
+  if(a==='shura'){const sh=shuraOf(j,view.day);const [g,f]=el.dataset.path.split('.');(sh[g]||(sh[g]={}))[f]=el.value.trim();save();return}
+  if(a==='assign'){const sh=shuraOf(j,view.day);const x=sh.assign[el.dataset.v]||(sh.assign[el.dataset.v]={});x.who=el.value.trim();save();return}
+});
+/* keep "now" fresh while the app stays open */
+setInterval(()=>{if(view.tab==='today'&&!view.sub&&!document.querySelector('.scrim')&&!document.activeElement.matches('input,textarea,select')){const k=dayKey();if(view.day!==k&&view.day===shift(k,-1))view.day=k;render()}},60000);
+render();
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>
